@@ -1,5 +1,4 @@
-# File: block.py 
-# Description: This file contains the declaration of basic tetris block class.
+# Tetris block implementation
 
 import constants
 import pygame
@@ -7,140 +6,115 @@ import math
 import copy
 
 class Block(object):
-    """
-    Class for handling of tetris block
-    """    
+    """Class for handling tetris blocks"""    
 
-    def __init__(self,shape,x,y,screen,color,rotate_en):
+    def __init__(self, shape, x, y, screen, color, rotate_en):
         """
-        Initialize the tetris block class
+        Initialize a tetris block.
 
         Parameters:
-            - shape - list of block data. The list contains [X,Y] coordinates of
-                      building blocks.
-            - x - X coordinate of first tetris shape block
-            - y - Y coordinate of first tetris shape block
-            - screen  - screen to draw on
-            - color - the color of each shape block in RGB notation
-            - rotate_en - enable or disable the rotation
+            shape - list of relative [x,y] coordinates for the block pieces
+            x - initial x coordinate
+            y - initial y coordinate
+            screen - pygame surface to draw on
+            color - RGB color tuple
+            rotate_en - whether rotation is allowed
         """
-        # The initial shape (convert all to Rect objects)
+        # Convert shape coordinates to Rect objects
         self.shape = []
         for sh in shape:
             bx = sh[0]*constants.BWIDTH + x
             by = sh[1]*constants.BHEIGHT + y
-            block = pygame.Rect(bx,by,constants.BWIDTH,constants.BHEIGHT)
+            block = pygame.Rect(bx, by, constants.BWIDTH, constants.BHEIGHT)
             self.shape.append(block)     
-        # Setup the rotation attribute
+        
         self.rotate_en = rotate_en
-        # Setup the rest of variables
         self.x = x
         self.y = y
-        # Movement in the X,Y coordinates
         self.diffx = 0
         self.diffy = 0
-        # Screen to drawn on
         self.screen = screen
         self.color = color
-        # Rotation of the screen
         self.diff_rotation = 0
 
     def draw(self):
-        """
-        Draw the block from shape blocks. Each shape block
-        is filled with a color and black border.
-        """
+        """Draw the block on the screen."""
         for bl in self.shape:
-            pygame.draw.rect(self.screen,self.color,bl)
-            pygame.draw.rect(self.screen,constants.BLACK,bl,constants.MESH_WIDTH)
+            pygame.draw.rect(self.screen, self.color, bl)
+            pygame.draw.rect(self.screen, constants.BLACK, bl, constants.MESH_WIDTH)
         
-    def get_rotated(self,x,y):
+    def get_rotated(self, x, y):
         """
-        Compute the new coordinates based on the rotation angle.
+        Calculate rotated coordinates using transformation matrix.
         
         Parameters:
-            - x - the X coordinate to transfer
-            - y - the Y coordinate to transfer
-
-        Returns the tuple with new (X,Y) coordinates.
+            x, y - coordinates to transform
+        
+        Returns:
+            tuple of transformed (x, y) coordinates
         """
-        # Use the classic transformation matrix:
-        # https://www.siggraph.org/education/materials/HyperGraph/modeling/mod_tran/2drota.htm
         rads = self.diff_rotation * (math.pi / 180.0)
         newx = x*math.cos(rads) - y*math.sin(rads)
         newy = y*math.cos(rads) + x*math.sin(rads)
-        return (newx,newy)        
+        return (newx, newy)        
 
-    def move(self,x,y):
+    def move(self, x, y):
         """
-        Move all elements of the block using the given offset.
+        Move block by the specified offset.
         
         Parameters:
-            - x - movement in the X coordinate
-            - y - movement in the Y coordinate 
+            x, y - amount to move in each direction
         """
-        # Accumulate X,Y coordinates and call the update function       
         self.diffx += x
         self.diffy += y  
         self._update()
 
-    def remove_blocks(self,y):
+    def remove_blocks(self, y):
         """
-        Remove blocks on the Y coordinate. All blocks
-        above the Y are moved one step down. 
-
+        Remove blocks at given Y coordinate and move blocks above down.
+        
         Parameters:
-            - y - Y coordinate to work with.
+            y - Y coordinate to clear
         """
         new_shape = []
         for shape_i in range(len(self.shape)):
             tmp_shape = self.shape[shape_i]
             if tmp_shape.y < y:
-                # Block is above the y, move down and add it to the list of active shape
-                # blocks.
+                # Block is above y, move down
                 new_shape.append(tmp_shape)  
-                tmp_shape.move_ip(0,constants.BHEIGHT)
+                tmp_shape.move_ip(0, constants.BHEIGHT)
             elif tmp_shape.y > y:
-                # Block is below the y, add it to the list. The block doesn't need to be moved because
-                # the removed line is above it.
+                # Block is below y, keep position
                 new_shape.append(tmp_shape)
-        # Setup the new list of block shapes.
+                
         self.shape = new_shape
 
     def has_blocks(self):
-        """
-        Returns true if the block has some shape blocks in the shape list.
-        """    
-        return True if len(self.shape) > 0 else False
+        """Return True if block contains any remaining pieces."""
+        return len(self.shape) > 0
 
     def rotate(self):
-        """
-        Setup the rotation value to 90 degrees.
-        """
-        # Setup the rotation and update coordinates of all shape blocks.
-        # The block is rotated iff the rotation is enabled
+        """Rotate the block 90 degrees if rotation is enabled."""
         if self.rotate_en:
             self.diff_rotation = 90
             self._update()
 
     def _update(self):
-        """
-        Update the position of all shape boxes.
-        """
+        """Update position of all pieces after rotation or movement."""
         for bl in self.shape:
-            # Get old coordinates and compute new x,y coordinates. 
-            # All rotation calculates are done in the original coordinates.
-            origX = (bl.x - self.x)/constants.BWIDTH
-            origY = (bl.y - self.y)/constants.BHEIGHT
-            rx,ry = self.get_rotated(origX,origY)
-            newX = rx*constants.BWIDTH  + self.x + self.diffx
-            newY = ry*constants.BHEIGHT + self.y + self.diffy
-            # Compute the relative move
+            # Calculate new position based on original coordinates
+            origX = (bl.x - self.x) / constants.BWIDTH
+            origY = (bl.y - self.y) / constants.BHEIGHT
+            rx, ry = self.get_rotated(origX, origY)
+            newX = rx * constants.BWIDTH + self.x + self.diffx
+            newY = ry * constants.BHEIGHT + self.y + self.diffy
+            
+            # Apply the movement
             newPosX = newX - bl.x
             newPosY = newY - bl.y
-            bl.move_ip(newPosX,newPosY)
-        # Everyhting was moved. Setup new x,y, coordinates and reset all disable the move
-        # variables.
+            bl.move_ip(newPosX, newPosY)
+            
+        # Update block's position and reset movement variables
         self.x += self.diffx
         self.y += self.diffy
         self.diffx = 0
@@ -148,37 +122,31 @@ class Block(object):
         self.diff_rotation = 0
 
     def backup(self):
-        """
-        Backup the current configuration of shape blocks.
-        """
-        # Make the deep copy of the shape list. Also, remember
-        # the current configuration.
+        """Save current block state."""
         self.shape_copy = copy.deepcopy(self.shape)
         self.x_copy = self.x
         self.y_copy = self.y
         self.rotation_copy = self.diff_rotation     
 
     def restore(self):
-        """
-        Restore the previous configuraiton.
-        """
+        """Restore block to previous saved state."""
         self.shape = self.shape_copy
         self.x = self.x_copy
         self.y = self.y_copy
         self.diff_rotation = self.rotation_copy
 
-    def check_collision(self,rect_list):
+    def check_collision(self, rect_list):
         """
-        The function checks if the block colides with any other block
-        in the shape list. 
-
+        Check for collision with provided rectangles.
+        
         Parameters:
-            - rect_list - the function accepts the list of Rect object which
-                         are used for the collistion detection. 
+            rect_list - list of pygame Rect objects
+        
+        Returns:
+            True if collision detected, False otherwise
         """
         for blk in rect_list:
             collist = blk.collidelistall(self.shape)
             if len(collist):
                 return True
         return False
-

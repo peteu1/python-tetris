@@ -50,6 +50,20 @@ class Tetris(object):
         self.speed = 1
         self.score_level = constants.SCORE_LEVEL
 
+    def drop_to_bottom(self):
+        """Drop the active block all the way to the bottom."""
+        while True:
+            self.active_block.backup()
+            self.active_block.move(0, constants.BHEIGHT)
+            
+            # Check for collisions with bottom board or other blocks
+            down_board = self.active_block.check_collision([self.board_down])
+            block_any = self.block_colides()
+            
+            if down_board or block_any:
+                self.active_block.restore()
+                return
+
     def apply_action(self):
         """Process events from the queue and apply appropriate actions."""
         for ev in pygame.event.get():
@@ -63,8 +77,10 @@ class Tetris(object):
                     self.active_block.move(-constants.BWIDTH,0)
                 if ev.key == pygame.K_RIGHT:
                     self.active_block.move(constants.BWIDTH,0)
-                if ev.key == pygame.K_SPACE:
+                if ev.key == pygame.K_UP:  # Changed from SPACE to UP arrow
                     self.active_block.rotate()
+                if ev.key == pygame.K_SPACE:  # Changed to drop to bottom
+                    self.drop_to_bottom()
                 if ev.key == pygame.K_p:
                     self.pause()
        

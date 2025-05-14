@@ -1,35 +1,26 @@
 # Python Tetris
 
-This is the repository with non-finished implementation of the tetris. Please, be patient because I am writing it in my free time :-).
-
 ### Prerequisites
 
 The game is based on the pygame library. You can install it using the pip tool.
 
 ```
-pip3 install --user pygame
+pip install pygame
 ```
 
 Provided code is written for Python3. After that, you can run the game with:
 
 ```
-python3 tetris.py
+python tetris.py
 ```
 
-
-## Control
+## Game Controls
 
 The following list contains used control keys:
 
-* *Arrows* - used for the moving of a tetris block
-* *Space*  - rotates the tetris block
-* *q*      - quit the game
-* *p*      - pause the game
-
-## Authors
-
-* **Pavel Benáček** - *coding of the game*
-
-## License
-
-This project is licensed under the GNU GPL License - see the [LICENSE.md](LICENSE.md) file for details
+Left/Right Arrows  -  move current tetris block left or right
+Up Arrow  -  rotates the current tetris block
+Down Arrow  -  increases fall speed of current tetris block
+Space  -  drops tetris block to the bottom
+q  -  quit the game
+p  -  pause the game

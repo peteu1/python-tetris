@@ -18,9 +18,9 @@ python tetris.py
 
 The following list contains used control keys:
 
-Left/Right Arrows  -  move current tetris block left or right
-Up Arrow  -  rotates the current tetris block
-Down Arrow  -  increases fall speed of current tetris block
-Space  -  drops tetris block to the bottom
-q  -  quit the game
-p  -  pause the game
+Left/Right Arrows  -  move current tetris block left or right  
+Up Arrow  -  rotates the current tetris block  
+Down Arrow  -  increases fall speed of current tetris block  
+Space  -  drops tetris block to the bottom  
+q  -  quit the game  
+p  -  pause the game  
